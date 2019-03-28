@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="UTF-8">
+        <title>祖玛游戏lowB版</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+            }
+
+            #cv {
+                width: 600px;
+                margin: 10px auto;
+            }
+
+            #box {
+                background: #fff;
+            }
+
+            body {
+                background: #000;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="cv">
+            <canvas id="box" width="600" height="600"></canvas>*Math
+        </div>
+    </body>
+    <script>
+        var oBox = document.getElementById('box');
+        var oc = oBox.getContext('2d');
+        var oImg = new Image();
+        var num = 0;        
+        oImg.src = 'person.png';        
+        oImg.onload = function() {
+            var bull = [];
+            bull[0] = {
+                x: 300,
+                y: 0,
+                r: 200,
+                deg: 0,
+                istartx: 300,
+                istarty: 0
+            }
+            setInterval(function() {
+                bull.push({
+                    x: 300,
+                    y: 0,
+                    r: 200,
+                    deg: 0,
+                    istartx: 300,
+                    istarty: 0
+                });
+            }, 400);
+
+            //生成红色小球
+            var bullet = [];
+            oBox.onclick = function(ev) {
+                var ev = ev || window.event;
+                var x = ev.clientX - oBox.offsetLeft;
+                var y = ev.clientY - oBox.offsetTop;
+                var a = x - 300;
+                var b = y - 200;
+                var c = Math.sqrt(a * a + b * b);
+                var speed = 5;
+                var x2 = speed * a / c;
+                var y2 = speed * b / c;
+                bullet.push({
+                    x: 300,
+                    y: 200,
+                    x2: x2,
+                    y2: y2,
+                });
+            }
+
+            function pz(x1,y1,x2,y2){
+                var a = x1 - x2;
+                var b = y1 - y2;
+                var c = Math.sqrt(a*a + b*b);
+
+                if(c<40){
+                    return true;
+                }else{
+                    return false;
+                }
+            }
+
+            setInterval(function() {
+                //让小球动起来：原理是不断改变小黑球圆心的位置（勾股定理）；
+                for (var i = 0; i < bull.length; i++) {
+                    bull[i].deg++;
+                    if (bull[i].deg == 270) {
+                        bull[i].r = 150;
+                        bull[i].istartx = 250;
+                        bull[i].istarty = 50;
+                    }
+                    if (bull[i].deg == 270 + 180) {
+                        alert('game over!');
+                        window.location.reload();
+                    }
+                    var a = bull[i].r * Math.sin(bull[i].deg * Math.PI / 180);
+                    var b = bull[i].r * Math.cos(bull[i].deg * Math.PI / 180);
+                    bull[i].x = a + bull[i].istartx;
+                    bull[i].y = bull[i].r - b + bull[i].istarty;
+                }
+
+                //红色子弹运动
+                for(var i=0;i<bullet.length;i++){
+                    bullet[i].x = bullet[i].x + bullet[i].x2;
+                    bullet[i].y = bullet[i].y + bullet[i].y2;                   
+                };
+
+                //进行碰撞检测
+                for(var i=0;i<bull.length;i++){
+                    for(var j=0;j<bullet.length;j++){
+                        if(pz(bull[i].x,bull[i].y,bullet[j].x,bullet[j].y)){
+                            bull.splice(i,1);
+                            bullet.splice(j,1);
+                            break;
+                        }
+                    }
+                }
+
+            }, 30)
+            setInterval(function() {
+                oc.clearRect(0, 0, oBox.width, oBox.height);
+                //大圆半径200，圆心300,200 绘制3/4的圆
+                oc.beginPath();
+                oc.arc(300, 200, 200, -90 * Math.PI / 180, 180 * Math.PI / 180, false);
+                oc.stroke();
+                //小圆半径150，圆心250,200， 绘制1/2的圆
+                oc.beginPath();
+                oc.arc(250, 200, 150, 180 * Math.PI / 180, 360 * Math.PI / 180, false);
+                oc.stroke();
+                //小圆：终点
+                oc.beginPath();
+                oc.arc(400, 200, 20, 0 * Math.PI / 180, 360 * Math.PI / 180, false);
+                oc.stroke();
+                //画小黑球
+                for (var i = 0; i < bull.length; i++) {
+                    oc.beginPath();
+                    oc.arc(bull[i].x, bull[i].y, 20, 0 * Math.PI / 180, 360 * Math.PI / 180, false);
+                    oc.closePath();
+                    oc.fill();
+                }
+                //绘制青蛙
+                oc.save();
+                oc.beginPath();
+                oc.translate(300, 200);
+                oc.rotate(iround);
+                oc.translate(-40, -40);
+                oc.drawImage(oImg, -30, -30);
+                oc.closePath();
+                oc.restore();
+                //绘制子弹
+                for (var i = 0; i < bullet.length; i++) {
+                    oc.save();
+                    oc.fillStyle = 'red';
+                    oc.beginPath();
+                    oc.arc(bullet[i].x, bullet[i].y, 20, 0 * Math.PI / 180, 360 * Math.PI / 180, false);
+                    oc.closePath();
+                    oc.fill();
+                    oc.restore();
+                };
+            }, 30);
+            var iround = 0;
+            oBox.onmousemove = function(ev) {
+                var ev = ev || window.event;
+                var x1 = ev.clientX - oBox.offsetLeft;
+                var y1 = ev.clientY - oBox.offsetTop;
+                var a = x1 - 300;
+                var b = y1 - 200;
+                var c = Math.sqrt(a * a + b * b);
+                if (a > 0 && b > 0) {
+                    //第四象限
+                    iround = Math.asin(b / c) + 90 * Math.PI / 180;
+                } else if (a > 0 && b < 0) {
+                    //第一象限
+                    iround = Math.asin(a / c);
+                }
+                if (a < 0 && b > 0) {
+                    //第三象限
+                    iround = -(Math.asin(b / c) + 90 * Math.PI / 180);
+                } else if (a < 0 && b < 0) {
+                    //第二象限
+                    iround = Math.asin(a / c);
+                }
+            };
+        };
+    </script>
+
+</html>
